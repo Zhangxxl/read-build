@@ -73,7 +73,7 @@ jobs:
           pwd
           ls
           chmod +x ./gradlew
-          ./gradlew assembleAppRelease
+          ${{env.CODE_ROOT_PATH}}/gradlew assembleAppRelease
 
       - name: upload to pgyer
         run: |

@@ -18,12 +18,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      #安装git
-      - name: Install git
-        run: |
-          echo "install git"
-          sudo apt update
-          sudo apt install git
+      #安装git(虚拟环境已附带)
+      #- name: Install git
+      #  run: |
+      #    echo "install git"
+      #    sudo apt update
+      #    sudo apt install git
 
       #初始化git
       - name: Set env
@@ -37,6 +37,7 @@ jobs:
           echo "clone code"
           cd /opt
           if [ -d "${{env.CODE_ROOT_PATH}}" ]; then
+            echo "delete old code folder"
             rm -rf ${{env.CODE_ROOT_PATH}}
           fi
           git clone 'https://github.com/gedoor/legado.git' ${{env.CODE_ROOT_PATH}}
@@ -70,14 +71,12 @@ jobs:
       - name: build with gradle
         run: |
           echo "开始进行release构建"
-          pwd
-          ls
-          chmod +x ./gradlew
+          chmod +x ${{env.CODE_ROOT_PATH}}/gradlew
           ${{env.CODE_ROOT_PATH}}/gradlew assembleAppRelease
 
       - name: upload to pgyer
         run: |
-          echo "开始上传蒲公英"
+          echo "start upload pgyer"
           APK_PATH=${{env.BUILD_PATH}}/`ls ${{env.BUILD_PATH}} | grep .apk`
           echo "APK_PATH is "$APK_PATH
           output=`curl -F file=@$APK_PATH -F _api_key=${{ secrets.PGYER_API_KEY }} https://www.pgyer.com/apiv2/app/upload`

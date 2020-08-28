@@ -1,10 +1,10 @@
 name: Build-Apk
 
 on:
-  push:
-    branches: [ master ]
-  #watch:
-    #types: [started]
+#   push:
+#     branches: [ master ]
+#   watch:
+#     types: [started]
   schedule:
       # 分钟 时间 日期 月份 星期
     - cron: '0 7 * * *'
@@ -18,20 +18,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      #安装git(虚拟环境已附带)
-      #- name: Install git
-      #  run: |
-      #    echo "install git"
-      #    sudo apt update
-      #    sudo apt install git
+#       安装git(虚拟环境已附带)
+#       - name: Install git
+#        run: |
+#          echo "install git"
+#          sudo apt update
+#          sudo apt install -y git
 
-      #初始化git
+#       初始化git
       - name: Set env
         run: |
           git config --global user.email "${{ secrets.EMAIL }}"
           git config --global user.name "zhangxx"
 
-      #拉取代码
+#       拉取代码
       - name: Clone code
         run: |
           echo "clone code"

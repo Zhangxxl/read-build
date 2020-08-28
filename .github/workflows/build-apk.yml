@@ -64,8 +64,8 @@ jobs:
       - name: apk live together
         run: |
           echo "设置apk共存"
-          sed "s/'.release'/'.releaseA'/" ${{CODE_ROOT_PATH}}/app/build.gradle  -i
-          sed 's/.release/.releaseA/'     ${{CODE_ROOT_PATH}}/app/google-services.json -i
+          sed "s/'.release'/'.releaseA'/" ${{env.CODE_ROOT_PATH}}/app/build.gradle  -i
+          sed 's/.release/.releaseA/'     ${{env.CODE_ROOT_PATH}}/app/google-services.json -i
 
       - name: build with gradle
         run: |

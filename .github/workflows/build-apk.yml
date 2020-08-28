@@ -70,6 +70,8 @@ jobs:
       - name: build with gradle
         run: |
           echo "开始进行release构建"
+          pwd
+          ls
           chmod +x ./gradlew
           ./gradlew assembleAppRelease
 

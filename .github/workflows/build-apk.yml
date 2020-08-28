@@ -35,7 +35,6 @@ jobs:
       - name: Clone code
         run: |
           echo "clone code"
-          cd /opt
           if [ -d "${{env.CODE_ROOT_PATH}}" ]; then
             echo "delete old code folder"
             rm -rf ${{env.CODE_ROOT_PATH}}
@@ -71,12 +70,14 @@ jobs:
       - name: build with gradle
         run: |
           echo "开始进行release构建"
+          cd ${{env.CODE_ROOT_PATH}}
           chmod +x ${{env.CODE_ROOT_PATH}}/gradlew
           ${{env.CODE_ROOT_PATH}}/gradlew assembleAppRelease
 
       - name: upload to pgyer
         run: |
           echo "start upload pgyer"
+          cd ${{env.CODE_ROOT_PATH}}
           APK_PATH=${{env.BUILD_PATH}}/`ls ${{env.BUILD_PATH}} | grep .apk`
           echo "APK_PATH is "$APK_PATH
           output=`curl -F file=@$APK_PATH -F _api_key=${{ secrets.PGYER_API_KEY }} https://www.pgyer.com/apiv2/app/upload`

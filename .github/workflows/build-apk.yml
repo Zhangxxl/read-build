@@ -1,13 +1,13 @@
 name: Build-Apk
 
 on:
-#   push:
-#     branches: [ master ]
-#   watch:
-#     types: [started]
-  schedule:
+   push:
+     branches: [ master ]
+   watch:
+     types: [started]
+   schedule:
       # 分钟 时间 日期 月份 星期
-    - cron: '0 7 * * *'
+    - cron: '0 6 * * *'
 
 env:
   CODE_ROOT_PATH: /opt/legado
@@ -18,13 +18,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-#       安装git(虚拟环境已附带)
-#       - name: Install git
-#        run: |
-#          echo "install git"
-#          sudo apt update
-#          sudo apt install -y git
-
 #       初始化git
       - name: Set env
         run: |

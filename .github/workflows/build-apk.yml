@@ -70,18 +70,21 @@ jobs:
         uses: actions/setup-ruby@v1
         with:
           ruby-version: '2.6'
-          run: ruby --version
 
       - name: install fir.im
-        run: gem install fir-cli
+        run: |
+          echo "install fir.im"
+          gem install fir-cli
   
       - name: login to fir.im
         run: |
+          echo "login to fir.im"
           fir login ${{ secrets.FIR_API_TOKEN }}
           fir me
   
       - name: upload to fir.im
       - run: |
+          echo "upload to fir.im"
           APK_PATH=${{env.BUILD_PATH}}/`ls ${{env.BUILD_PATH}} | grep .apk`
           fir publish $APK_PATH
 

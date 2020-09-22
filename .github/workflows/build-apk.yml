@@ -1,12 +1,12 @@
 name: Build-Apk
 
 on:
-   push:
-     branches: [ master ]
-   watch:
-     types: [started]
-   schedule:
-      # 分钟 时间 日期 月份 星期
+  push:
+    branches: [ master ]
+  watch:
+    types: [ started ]
+  schedule:
+    # 分钟 时间 日期 月份 星期
     - cron: '0 0 * * *'
 
 env:
@@ -17,97 +17,84 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-#       初始化git
+      # 1. 初始化 git
       - name: Set env
         run: |
-          git config --global user.email "${{ secrets.EMAIL }}"
-          git config --global user.name "zhangxx"
-
-#       拉取代码
+          git config --global user.email ${{ secrets.EMAIL }}
+          git config --global user.name ${{ github.actor }}
+      # 2. 拉取代码
       - name: Clone code
         run: |
-          echo "clone code"
           if [ -d "${{env.CODE_ROOT_PATH}}" ]; then
             echo "delete old code folder"
             rm -rf ${{env.CODE_ROOT_PATH}}
           fi
-          git clone 'https://github.com/gedoor/legado.git' ${{env.CODE_ROOT_PATH}}
-          cd ${{env.CODE_ROOT_PATH}}
+          git clone 'https://github.com/gedoor/legado.git' ${{ env.CODE_ROOT_PATH }}
+          cd ${{ env.CODE_ROOT_PATH }}
           git checkout master
-
-
+      # 3. 设置 JDK
       - name: set up JDK 1.8
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-
+      # 4. 清空 18PlusList.txt
       - name: clear 18PlusList.txt
-        run: |
-          echo "清空18PlusList.txt"
-          echo "">${{env.CODE_ROOT_PATH}}/app/src/main/assets/18PlusList.txt
-
-
+        run: echo "">${{ env.CODE_ROOT_PATH }}/app/src/main/assets/18PlusList.txt
+      # 5. 添加签名
       - name: release apk sign
         run: |
-          echo "给apk增加签名"
           sed '$a\RELEASE_STORE_FILE=../.github/workflows/legado.jks' ${{env.CODE_ROOT_PATH}}/gradle.properties -i
           sed '$a\RELEASE_KEY_ALIAS=legado'                           ${{env.CODE_ROOT_PATH}}/gradle.properties -i
           sed '$a\RELEASE_STORE_PASSWORD=gedoor_legado'               ${{env.CODE_ROOT_PATH}}/gradle.properties -i
           sed '$a\RELEASE_KEY_PASSWORD=gedoor_legado'                 ${{env.CODE_ROOT_PATH}}/gradle.properties -i
-
-
+      # 6. 修改 ApplicationId, 和原版阅读App共存
       - name: apk live together
         run: |
-          echo "设置apk共存"
-          sed "s/'.release'/'.releaseA'/" ${{env.CODE_ROOT_PATH}}/app/build.gradle  -i
-          sed 's/.release/.releaseA/'     ${{env.CODE_ROOT_PATH}}/app/google-services.json -i
-
-
+          sed "s/'.release'/'.releaseA'/" ${{ env.CODE_ROOT_PATH }}/app/build.gradle  -i
+          sed 's/.release/.releaseA/'     ${{ env.CODE_ROOT_PATH }}/app/google-services.json -i
+      # 7. 构建 Apk
       - name: build with gradle
         run: |
-          echo "开始进行release构建"
-          cd ${{env.CODE_ROOT_PATH}}
-          chmod +x ${{env.CODE_ROOT_PATH}}/gradlew
-          ${{env.CODE_ROOT_PATH}}/gradlew assembleAppRelease
-
-
+          cd ${{ env.CODE_ROOT_PATH }}
+          chmod +x ${{ env.CODE_ROOT_PATH }}/gradlew
+          ${{ env.CODE_ROOT_PATH }}/gradlew assembleAppRelease
+          APK_NAME=`ls ${{ env.BUILD_PATH }} | grep .apk`
+          echo '::set-env name=APK_NAME::$APK_NAME'
+      # 8. 准备 Ruby 环境
       - name: setup Ruby
         uses: actions/setup-ruby@v1
         with:
           ruby-version: '2.6'
-
+      # 9. 安装 fir-cli
       - name: install fir.im
-        run: |
-          echo "install fir.im"
-          gem install fir-cli
-
-
-
+        run: gem install fir-cli
+      # 10. 使用 secrets.FIR_API_TOKEN 登录 fir.im
       - name: login to fir.im
         run: |
-          echo "login to fir.im"
           fir login ${{ secrets.FIR_API_TOKEN }}
           fir me
-
-
+      # 11. 上传 Apk 至 fir.im
       - name: upload to fir.im
         run: |
-          echo "upload to fir.im"
-          APK_PATH=${{env.BUILD_PATH}}/`ls ${{env.BUILD_PATH}} | grep .apk`
-          fir publish $APK_PATH
-
-
+          APK_FULL_PATH=${{env.BUILD_PATH}}/$APK_NAME
+          FIR_RESULT=`fir publish $APK_FULL_PATH`
+          echo '::set-env name=FIR_RESULT::$FIR_RESULT'
+      # 12. 发送方糖推送信息
+      - name: send ftqq message
+        run: |
+          result=`curl -F text=$APK_NAME -F desp=$FIR_RESULT https://sc.ftqq.com/${{ secrets.FTQQ_SCKEY }}.send`
+          cat $result > ${{ env.BUILD_PATH }}/update-ft.log
+          echo $result
+      # 13. 上传 Apk 至 蒲公英
       - name: upload to pgyer
         run: |
           echo "start upload pgyer"
           cd ${{env.CODE_ROOT_PATH}}
-          APK_PATH=${{env.BUILD_PATH}}/`ls ${{env.BUILD_PATH}} | grep .apk`
-          echo "APK_PATH is "$APK_PATH
-          output=`curl -F file=@$APK_PATH -F _api_key=${{ secrets.PGYER_API_KEY }} https://www.pgyer.com/apiv2/app/upload`
+          APK_FULL_PATH=${{env.BUILD_PATH}}/$APK_NAME
+          output=`curl -F file=@$APK_FULL_PATH -F _api_key=${{ secrets.PGYER_API_KEY }} https://www.pgyer.com/apiv2/app/upload`
+          echo $output > ${{ env.BUILD_PATH }}/update-pgy.log
           echo $output
-          echo $output > ${{env.BUILD_PATH}}/update.log
-
-
+      # 14. 保存构建结果
       - name: save apk
         uses: actions/upload-artifact@master
         if: always()

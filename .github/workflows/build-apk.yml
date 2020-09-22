@@ -58,8 +58,7 @@ jobs:
           cd ${{ env.CODE_ROOT_PATH }}
           chmod +x ${{ env.CODE_ROOT_PATH }}/gradlew
           ${{ env.CODE_ROOT_PATH }}/gradlew assembleAppRelease
-          APK_NAME=`ls ${{ env.BUILD_PATH }} | grep .apk`
-          echo '::set-env name=APK_NAME::$APK_NAME'
+          echo "::set-env name=APK_NAME::`ls ${{ env.BUILD_PATH }} | grep .apk`"
       # 8. 准备 Ruby 环境
       - name: setup Ruby
         uses: actions/setup-ruby@v1
@@ -76,9 +75,11 @@ jobs:
       # 11. 上传 Apk 至 fir.im
       - name: upload to fir.im
         run: |
-          APK_FULL_PATH=${{env.BUILD_PATH}}/$APK_NAME
-          FIR_RESULT=`fir publish $APK_FULL_PATH`
-          echo '::set-env name=FIR_RESULT::$FIR_RESULT'
+          apkFullPath=${{env.BUILD_PATH}}/$APK_NAME
+          firResult=`fir publish $apkFullPath`
+          cat $firResult > ${{ env.BUILD_PATH }}/update-fir.log
+          echo $firResult
+          echo "::set-env name=FIR_RESULT::`$firResult`"
       # 12. 发送方糖推送信息
       - name: send ftqq message
         run: |
@@ -90,8 +91,8 @@ jobs:
         run: |
           echo "start upload pgyer"
           cd ${{env.CODE_ROOT_PATH}}
-          APK_FULL_PATH=${{env.BUILD_PATH}}/$APK_NAME
-          output=`curl -F file=@$APK_FULL_PATH -F _api_key=${{ secrets.PGYER_API_KEY }} https://www.pgyer.com/apiv2/app/upload`
+          apkFullPath=${{env.BUILD_PATH}}/$APK_NAME
+          output=`curl -F file=@$apkFullPath -F _api_key=${{ secrets.PGYER_API_KEY }} https://www.pgyer.com/apiv2/app/upload`
           echo $output > ${{ env.BUILD_PATH }}/update-pgy.log
           echo $output
       # 14. 保存构建结果

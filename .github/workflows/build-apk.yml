@@ -16,7 +16,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
 #       初始化git
       - name: Set env
@@ -66,6 +65,25 @@ jobs:
           cd ${{env.CODE_ROOT_PATH}}
           chmod +x ${{env.CODE_ROOT_PATH}}/gradlew
           ${{env.CODE_ROOT_PATH}}/gradlew assembleAppRelease
+
+      - name: setup Ruby
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+          run: ruby --version
+
+      - name: install fir.im
+        run: gem install fir-cli
+  
+      - name: login to fir.im
+        run: |
+          fir login ${{ secrets.FIR_API_TOKEN }}
+          fir me
+  
+      - name: upload to fir.im
+      - run: |
+          APK_PATH=${{env.BUILD_PATH}}/`ls ${{env.BUILD_PATH}} | grep .apk`
+          fir publish $APK_PATH
 
       - name: upload to pgyer
         run: |

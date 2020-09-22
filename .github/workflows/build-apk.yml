@@ -78,7 +78,7 @@ jobs:
           apkFullPath=${{env.BUILD_PATH}}/${{ env.APK_NAME }}
           echo $apkFullPath
           firResult=`fir publish $apkFullPath`
-          cat $firResult > ${{ env.BUILD_PATH }}/update-fir.log
+          echo $firResult > ${{ env.BUILD_PATH }}/update-fir.log
           echo $firResult
           echo "::set-env name=FIR_RESULT::`$firResult`"
       # 12. 发送方糖推送信息

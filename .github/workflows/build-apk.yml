@@ -80,12 +80,12 @@ jobs:
           firResult=`fir publish $apkFullPath`
           echo $firResult > ${{ env.BUILD_PATH }}/update-fir.log
           echo $firResult
-          echo "::set-env name=FIR_RESULT::`$firResult`"
+          echo "::set-env name=FIR_RESULT::`echo $firResult`"
       # 12. 发送方糖推送信息
       - name: send ftqq message
         run: |
-          result=`curl -F text=$APK_NAME -F desp=${{ env.FIR_RESULT }} https://sc.ftqq.com/${{ secrets.FTQQ_SCKEY }}.send`
-          cat $result > ${{ env.BUILD_PATH }}/update-ft.log
+          result=`curl -F text=${{ env.APK_NAME }} -F desp=${{ env.FIR_RESULT }} https://sc.ftqq.com/${{ secrets.FTQQ_SCKEY }}.send`
+          echo $result > ${{ env.BUILD_PATH }}/update-ft.log
           echo $result
       # 13. 上传 Apk 至 蒲公英
       - name: upload to pgyer

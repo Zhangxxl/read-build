@@ -75,7 +75,8 @@ jobs:
       # 11. 上传 Apk 至 fir.im
       - name: upload to fir.im
         run: |
-          apkFullPath=${{env.BUILD_PATH}}/$APK_NAME
+          apkFullPath=${{env.BUILD_PATH}}/${{ env.APK_NAME }}
+          echo $apkFullPath
           firResult=`fir publish $apkFullPath`
           cat $firResult > ${{ env.BUILD_PATH }}/update-fir.log
           echo $firResult
@@ -83,13 +84,12 @@ jobs:
       # 12. 发送方糖推送信息
       - name: send ftqq message
         run: |
-          result=`curl -F text=$APK_NAME -F desp=$FIR_RESULT https://sc.ftqq.com/${{ secrets.FTQQ_SCKEY }}.send`
+          result=`curl -F text=$APK_NAME -F desp=${{ env.FIR_RESULT }} https://sc.ftqq.com/${{ secrets.FTQQ_SCKEY }}.send`
           cat $result > ${{ env.BUILD_PATH }}/update-ft.log
           echo $result
       # 13. 上传 Apk 至 蒲公英
       - name: upload to pgyer
         run: |
-          echo "start upload pgyer"
           cd ${{env.CODE_ROOT_PATH}}
           apkFullPath=${{env.BUILD_PATH}}/$APK_NAME
           output=`curl -F file=@$apkFullPath -F _api_key=${{ secrets.PGYER_API_KEY }} https://www.pgyer.com/apiv2/app/upload`

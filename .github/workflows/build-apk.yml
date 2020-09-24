@@ -79,7 +79,7 @@ jobs:
           echo "$apkFullPath"
           firResult=$(fir publish "$apkFullPath")
           echo "$firResult" > ${{ env.BUILD_PATH }}/update-fir.log
-          firResult=`echo "$firResult" | grep -P 'http://\S*\s' -o`
+          firResult=$(echo "$firResult" | grep -P 'http://.*' -o)
           echo "::set-env name=FIR_URL::$(echo "$firResult")"
       # 12. 发送方糖推送信息
       - name: send ftqq message

@@ -84,8 +84,9 @@ jobs:
       # 12. 发送方糖推送信息
       - name: send ftqq message
         run: |
-          desp="[${{ env.FIR_URL }}]:(${{ env.FIR_URL }})"
-          result=`curl -F text=${{ env.APK_NAME }} -F desp=$desp https://sc.ftqq.com/${{ secrets.FTQQ_SCKEY }}.send`
+#          desp="\"[${{ env.FIR_URL }}]:(${{ env.FIR_URL }})\""
+          desp="${{ env.FIR_URL }}"
+          result=`curl -F text="${{ env.APK_NAME }}" -F desp="$desp" "https://sc.ftqq.com/${{ secrets.FTQQ_SCKEY }}.send"`
           echo $result > ${{ env.BUILD_PATH }}/update-ft.log
           echo $result
       # 13. 上传 Apk 至 蒲公英
